@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>German Quiz Game</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+      }
+
+      .container {
+        display: flex;
+        height: 100vh;
+      }
+
+      .sidebar {
+        width: 250px;
+        background: #1e293b;
+        color: white;
+        padding: 20px;
+      }
+
+      .sidebar h2 {
+        font-size: 20px;
+        margin-bottom: 20px;
+      }
+
+      .sidebar ul {
+        list-style: none;
+      }
+
+      .sidebar ul li {
+        padding: 10px;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+
+      .sidebar ul li:hover {
+        background: #334155;
+      }
+
+      .quiz-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #question-box {
+        background: #f1f5f9;
+        padding: 20px;
+        border-radius: 10px;
+        width: 400px;
+        text-align: center;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      #score-card {
+        background: #e5e7eb;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: left;
+        width: 400px;
+        margin-top: 20px;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .correct {
+        color: green;
+        font-weight: bold;
+      }
+
+      .incorrect {
+        color: red;
+        font-weight: bold;
+      }
+
+      #options-list {
+        list-style: none;
+        padding: 0;
+      }
+
+      #options-list li {
+        background: #e2e8f0;
+        padding: 10px;
+        margin: 5px 0;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: background 0.3s;
+        text-align: center;
+      }
+      #options-list li.selected {
+        background: #3b82f6 !important; /* Blue highlight */
+        color: white;
+        font-weight: bold;
+      }
+
+      #options-list li:hover {
+        background: #94a3b8;
+      }
+
+      #next-btn,
+      #submit-btn {
+        margin-top: 10px;
+        padding: 10px;
+        background: #3b82f6;
+        color: white;
+        border: none;
+        cursor: pointer;
+        border-radius: 5px;
+        display: block;
+        width: 100%;
+      }
+
+      #next-btn:hover,
+      #submit-btn:hover {
+        background: #2563eb;
+      }
+      .selected {
+        background-color: #4caf50; /* Green for selected answer */
+        color: white;
+      }
+
+      .option {
+        cursor: pointer;
+        padding: 10px;
+        border: 1px solid #ccc;
+        margin: 5px 0;
+        transition: background-color 0.3s;
+      }
+
+      .option:hover {
+        background-color: #ddd;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <aside class="sidebar">
+        <h2>WordWiz - Quizzes</h2>
+        <ul id="quiz-list">
+          <!-- Quizzes will be dynamically added here -->
+        </ul>
+      </aside>
+
+      <main class="quiz-container">
+        <h2 id="quiz-title">German Basics</h2>
+        <div id="question-box">
+          <p id="question-text">Loading question...</p>
+          <ul id="options-list"></ul>
+          <button id="next-btn">Next</button>
+          <button id="submit-btn" style="display: none">Submit Quiz</button>
+        </div>
+        <div id="score-card" class="hidden"></div>
+      </main>
+    </div>
+
+    <script>
+      const quizzes = [
+        "Quiz 1",
+        "Quiz 2",
+        "Quiz 3",
+        "Quiz 4",
+        "Quiz 5",
+        "Quiz 6",
+        "Quiz 7",
+        "Quiz 8",
+        "Quiz 9",
+        "Quiz 10",
+      ];
+
+      const questions = {
+        "Quiz 1": [
+          {
+            question: "What is the German word for 'apple'?",
+            options: ["Apfel", "Orange", "Banane", "Traube"],
+            answer: "Apfel",
+          },
+          {
+            question: "How do you say 'Good morning' in German?",
+            options: ["Guten Morgen", "Guten Tag", "Hallo", "Gute Nacht"],
+            answer: "Guten Morgen",
+          },
+          {
+            question: "What is the German word for 'house'?",
+            options: ["Haus", "Auto", "Baum", "Straße"],
+            answer: "Haus",
+          },
+          {
+            question: "Translate 'Danke' to English.",
+            options: ["Hello", "Thank You", "Goodbye", "Sorry"],
+            answer: "Thank You",
+          },
+          {
+            question: "What is the German word for 'dog'?",
+            options: ["Katze", "Hund", "Vogel", "Maus"],
+            answer: "Hund",
+          },
+          {
+            question: "How do you say 'Yes' in German?",
+            options: ["Nein", "Vielleicht", "Ja", "Doch"],
+            answer: "Ja",
+          },
+          {
+            question: "What does 'Essen' mean?",
+            options: ["Sleep", "Eat", "Run", "Speak"],
+            answer: "Eat",
+          },
+          {
+            question: "What is the German word for 'water'?",
+            options: ["Milch", "Saft", "Wasser", "Tee"],
+            answer: "Wasser",
+          },
+          {
+            question: "Translate 'Freund' to English.",
+            options: ["Enemy", "Friend", "Brother", "Neighbor"],
+            answer: "Friend",
+          },
+          {
+            question: "How do you say 'Good night' in German?",
+            options: ["Guten Tag", "Gute Nacht", "Guten Morgen", "Guten Abend"],
+            answer: "Gute Nacht",
+          },
+        ],
+        "Quiz 2": [
+          {
+            question: "What is the correct definite article for 'Haus'?",
+            options: ["Der", "Die", "Das", "Den"],
+            answer: "Das",
+          },
+          {
+            question: "What is the plural of 'Kind'?",
+            options: ["Kinder", "Kindes", "Kindern", "Kinde"],
+            answer: "Kinder",
+          },
+          {
+            question: "Which case is used for direct objects?",
+            options: ["Nominative", "Accusative", "Dative", "Genitive"],
+            answer: "Accusative",
+          },
+          {
+            question: "Which pronoun means 'they' in German?",
+            options: ["Er", "Sie", "Wir", "Ich"],
+            answer: "Sie",
+          },
+          {
+            question: "What is the past tense of 'gehen' (to go)?",
+            options: ["Ging", "Geht", "Gegangen", "Gehen"],
+            answer: "Ging",
+          },
+          {
+            question: "Which word is used for 'and' in German?",
+            options: ["Aber", "Oder", "Und", "Doch"],
+            answer: "Und",
+          },
+          {
+            question: "Which case is used for indirect objects?",
+            options: ["Nominative", "Accusative", "Dative", "Genitive"],
+            answer: "Dative",
+          },
+          {
+            question: "What is the correct article for 'Auto'?",
+            options: ["Der", "Die", "Das", "Den"],
+            answer: "Das",
+          },
+          {
+            question: "How do you say 'I am' in German?",
+            options: ["Ich habe", "Ich bin", "Ich werde", "Ich mache"],
+            answer: "Ich bin",
+          },
+          {
+            question: "What is the past participle of 'sehen' (to see)?",
+            options: ["Gesieht", "Gesehen", "Sehte", "Sah"],
+            answer: "Gesehen",
+          },
+        ],
+        "Quiz 3": [
+          {
+            question: "What is the German word for 'car'?",
+            options: ["Bus", "Fahrrad", "Auto", "Zug"],
+            answer: "Auto",
+          },
+          {
+            question: "What is 'Schule' in English?",
+            options: ["School", "Library", "University", "Hospital"],
+            answer: "School",
+          },
+          {
+            question: "What does 'Schlüssel' mean?",
+            options: ["Lock", "Key", "Door", "Window"],
+            answer: "Key",
+          },
+          {
+            question: "What is 'Buch' in English?",
+            options: ["Pen", "Notebook", "Book", "Paper"],
+            answer: "Book",
+          },
+          {
+            question: "How do you say 'Chair' in German?",
+            options: ["Tisch", "Bett", "Stuhl", "Lampe"],
+            answer: "Stuhl",
+          },
+          {
+            question: "What is the German word for 'friend'?",
+            options: ["Freund", "Nachbar", "Feind", "Bruder"],
+            answer: "Freund",
+          },
+          {
+            question: "What is 'Blume' in English?",
+            options: ["Tree", "Bush", "Flower", "Grass"],
+            answer: "Flower",
+          },
+          {
+            question: "What does 'Geld' mean?",
+            options: ["Gold", "Bank", "Money", "Loan"],
+            answer: "Money",
+          },
+          {
+            question: "What is 'Himmel' in English?",
+            options: ["Cloud", "Sun", "Sky", "Star"],
+            answer: "Sky",
+          },
+          {
+            question: "What does 'Zucker' mean?",
+            options: ["Salt", "Pepper", "Sugar", "Flour"],
+            answer: "Sugar",
+          },
+        ],
+        "Quiz 4": [
+          {
+            question: "Which German letter sounds like 'ss'?",
+            options: ["ß", "ä", "ö", "ü"],
+            answer: "ß",
+          },
+          {
+            question: "How is 'ch' pronounced in 'Bach'?",
+            options: [
+              "Like 'sh'",
+              "Like 'k'",
+              "Like 'h'",
+              "Like 'ch' in Scottish 'loch'",
+            ],
+            answer: "Like 'ch' in Scottish 'loch'",
+          },
+          {
+            question: "What does 'ei' sound like?",
+            options: [
+              "Like 'ee' in 'feet'",
+              "Like 'ay' in 'say'",
+              "Like 'i' in 'bit'",
+              "Like 'ai' in 'aisle'",
+            ],
+            answer: "Like 'ai' in 'aisle'",
+          },
+          {
+            question: "What does 'eu' sound like?",
+            options: [
+              "Like 'oi' in 'oil'",
+              "Like 'ee' in 'see'",
+              "Like 'ay' in 'say'",
+              "Like 'ou' in 'ouch'",
+            ],
+            answer: "Like 'oi' in 'oil'",
+          },
+          {
+            question: "How is 'z' pronounced in German?",
+            options: [
+              "Like 's'",
+              "Like 'ts'",
+              "Like 'z' in 'zebra'",
+              "Like 'd'",
+            ],
+            answer: "Like 'ts'",
+          },
+          {
+            question: "How is 'sch' pronounced?",
+            options: ["Like 's'", "Like 'sh'", "Like 'ch'", "Like 'k'"],
+            answer: "Like 'sh'",
+          },
+          {
+            question: "How do you pronounce 'sp' at the beginning of a word?",
+            options: [
+              "Like 'sp' in 'sport'",
+              "Like 'shp'",
+              "Like 'sp' in 'spy'",
+              "Like 'skp'",
+            ],
+            answer: "Like 'shp'",
+          },
+          {
+            question: "What does 'ch' sound like in 'ich'?",
+            options: [
+              "Like 'sh'",
+              "Like 'k'",
+              "Like 'h'",
+              "Like 'ch' in Scottish 'loch'",
+            ],
+            answer: "Like 'ch' in Scottish 'loch'",
+          },
+          {
+            question: "How do you pronounce 'ö'?",
+            options: [
+              "Like 'u' in 'fur'",
+              "Like 'o' in 'go'",
+              "Like 'a' in 'cat'",
+              "Like 'i' in 'bit'",
+            ],
+            answer: "Like 'u' in 'fur'",
+          },
+          {
+            question: "How is 'w' pronounced in German?",
+            options: [
+              "Like 'v'",
+              "Like 'w' in English",
+              "Like 'b'",
+              "Like 'f'",
+            ],
+            answer: "Like 'v'",
+          },
+        ],
+        "Quiz 5": [
+          {
+            question: "What is the German verb for 'to go'?",
+            options: ["Laufen", "Gehen", "Fahren", "Machen"],
+            answer: "Gehen",
+          },
+          {
+            question: "What does 'sprechen' mean?",
+            options: ["To run", "To eat", "To speak", "To sleep"],
+            answer: "To speak",
+          },
+          {
+            question: "What is the past tense of 'sein' (to be)?",
+            options: ["Habe gewesen", "War", "Bin gewesen", "Hatte"],
+            answer: "War",
+          },
+          {
+            question: "What is the German verb for 'to have'?",
+            options: ["Machen", "Haben", "Kommen", "Sehen"],
+            answer: "Haben",
+          },
+          {
+            question: "Which verb means 'to know' (a fact)?",
+            options: ["Kennen", "Wissen", "Verstehen", "Glauben"],
+            answer: "Wissen",
+          },
+          {
+            question: "How do you say 'to need' in German?",
+            options: ["Brauchen", "Warten", "Finden", "Hören"],
+            answer: "Brauchen",
+          },
+          {
+            question: "Which verb means 'to take'?",
+            options: ["Nehmen", "Trinken", "Helfen", "Schreiben"],
+            answer: "Nehmen",
+          },
+          {
+            question: "What is the German verb for 'to learn'?",
+            options: ["Lernen", "Arbeiten", "Zeigen", "Fahren"],
+            answer: "Lernen",
+          },
+          {
+            question: "What does 'schlafen' mean?",
+            options: ["To cook", "To sleep", "To run", "To study"],
+            answer: "To sleep",
+          },
+          {
+            question: "What is the infinitive form of 'sang'?",
+            options: ["Singen", "Sang", "Gesungen", "Sing"],
+            answer: "Singen",
+          },
+        ],
+
+        "Quiz 6": [
+          {
+            question: "How do you say 'See you soon' in German?",
+            options: ["Bis später", "Auf Wiedersehen", "Guten Tag", "Tschüss"],
+            answer: "Bis später",
+          },
+          {
+            question: "What does 'Es tut mir leid' mean?",
+            options: [
+              "I am tired",
+              "I am sorry",
+              "I don’t understand",
+              "I am happy",
+            ],
+            answer: "I am sorry",
+          },
+          {
+            question: "How do you ask 'How are you?' in German?",
+            options: [
+              "Wie geht's?",
+              "Was machst du?",
+              "Wo bist du?",
+              "Warum nicht?",
+            ],
+            answer: "Wie geht's?",
+          },
+          {
+            question: "What is a common way to say 'Good luck'?",
+            options: [
+              "Viel Erfolg",
+              "Guten Morgen",
+              "Alles klar",
+              "Mach's gut",
+            ],
+            answer: "Viel Erfolg",
+          },
+          {
+            question: "What does 'Ich verstehe nicht' mean?",
+            options: [
+              "I am hungry",
+              "I don't understand",
+              "I am fine",
+              "I speak German",
+            ],
+            answer: "I don't understand",
+          },
+          {
+            question: "What is 'Ich brauche Hilfe' in English?",
+            options: [
+              "I need help",
+              "I am lost",
+              "I have a question",
+              "I am hungry",
+            ],
+            answer: "I need help",
+          },
+          {
+            question: "How do you say 'Excuse me' politely?",
+            options: ["Entschuldigung", "Danke", "Bitte", "Nein"],
+            answer: "Entschuldigung",
+          },
+          {
+            question: "How do you order a beer in German?",
+            options: [
+              "Ich möchte ein Bier",
+              "Ich habe ein Bier",
+              "Gib mir ein Bier",
+              "Ich trinke ein Bier",
+            ],
+            answer: "Ich möchte ein Bier",
+          },
+          {
+            question: "What does 'Alles Gute zum Geburtstag' mean?",
+            options: [
+              "Merry Christmas",
+              "Congratulations",
+              "Happy Birthday",
+              "Have a nice day",
+            ],
+            answer: "Happy Birthday",
+          },
+          {
+            question: "What does 'Kannst du das wiederholen?' mean?",
+            options: [
+              "Where is the train station?",
+              "Can you repeat that?",
+              "How much does it cost?",
+              "What time is it?",
+            ],
+            answer: "Can you repeat that?",
+          },
+        ],
+
+        "Quiz 7": [
+          {
+            question: "Which city is the capital of Germany?",
+            options: ["Munich", "Hamburg", "Berlin", "Frankfurt"],
+            answer: "Berlin",
+          },
+          {
+            question: "What is the name of Germany's famous beer festival?",
+            options: [
+              "Karneval",
+              "Oktoberfest",
+              "Weihnachtsmarkt",
+              "Tag der Deutschen Einheit",
+            ],
+            answer: "Oktoberfest",
+          },
+          {
+            question:
+              "Which German car brand is known for the slogan 'Vorsprung durch Technik'?",
+            options: ["BMW", "Mercedes-Benz", "Audi", "Volkswagen"],
+            answer: "Audi",
+          },
+          {
+            question: "What is the national dish of Germany?",
+            options: ["Bratwurst", "Schnitzel", "Sauerkraut", "Currywurst"],
+            answer: "Schnitzel",
+          },
+          {
+            question:
+              "Which German scientist developed the theory of relativity?",
+            options: [
+              "Max Planck",
+              "Albert Einstein",
+              "Johannes Kepler",
+              "Werner Heisenberg",
+            ],
+            answer: "Albert Einstein",
+          },
+          {
+            question: "What is the name of Germany’s currency before the Euro?",
+            options: ["Franc", "Mark", "Pound", "Guilder"],
+            answer: "Mark",
+          },
+          {
+            question:
+              "Which German castle inspired Disney’s Sleeping Beauty castle?",
+            options: ["Neuschwanstein", "Hohenzollern", "Lichtenstein", "Eltz"],
+            answer: "Neuschwanstein",
+          },
+          {
+            question: "Which famous composer was born in Germany?",
+            options: ["Mozart", "Beethoven", "Chopin", "Tchaikovsky"],
+            answer: "Beethoven",
+          },
+          {
+            question: "What is the tallest mountain in Germany?",
+            options: ["Zugspitze", "Brocken", "Watzmann", "Feldberg"],
+            answer: "Zugspitze",
+          },
+          {
+            question: "Which German city is famous for its Christmas markets?",
+            options: ["Hamburg", "Nuremberg", "Dresden", "Cologne"],
+            answer: "Nuremberg",
+          },
+        ],
+        "Quiz 8": [
+          {
+            question: "What does 'Ich bin müde' mean when heard?",
+            options: ["I am tired", "I am happy", "I am angry", "I am late"],
+            answer: "I am tired",
+          },
+          {
+            question: "How would you respond to 'Wie geht es dir?' in German?",
+            options: [
+              "Es ist gut",
+              "Mir geht es gut",
+              "Ich bin einverstanden",
+              "Ich spreche nicht",
+            ],
+            answer: "Mir geht es gut",
+          },
+          {
+            question:
+              "What is the correct German translation for hearing 'I want to eat'?",
+            options: [
+              "Ich will essen",
+              "Ich gehe essen",
+              "Ich esse gerne",
+              "Ich habe Hunger",
+            ],
+            answer: "Ich will essen",
+          },
+          {
+            question:
+              "If someone says 'Hast du Geschwister?', what are they asking?",
+            options: [
+              "Do you have siblings?",
+              "Are you hungry?",
+              "Do you like sports?",
+              "Where do you live?",
+            ],
+            answer: "Do you have siblings?",
+          },
+          {
+            question: "What does 'Ich höre Musik' mean?",
+            options: [
+              "I play music",
+              "I listen to music",
+              "I write music",
+              "I sing music",
+            ],
+            answer: "I listen to music",
+          },
+          {
+            question: "Which sentence means 'I can't hear you'?",
+            options: [
+              "Ich sehe dich nicht",
+              "Ich höre dich nicht",
+              "Ich mag dich nicht",
+              "Ich kenne dich nicht",
+            ],
+            answer: "Ich höre dich nicht",
+          },
+          {
+            question:
+              "What does 'Könnten Sie das wiederholen?' mean in a conversation?",
+            options: [
+              "Can you repeat that?",
+              "Where are you from?",
+              "How much does it cost?",
+              "Can you help me?",
+            ],
+            answer: "Can you repeat that?",
+          },
+          {
+            question: "If someone says 'Es regnet', what does it mean?",
+            options: [
+              "It is cold",
+              "It is raining",
+              "It is sunny",
+              "It is windy",
+            ],
+            answer: "It is raining",
+          },
+          {
+            question: "What does 'Wir treffen uns um sechs Uhr' mean?",
+            options: [
+              "We meet at six o’clock",
+              "We are late",
+              "We eat together",
+              "We talk later",
+            ],
+            answer: "We meet at six o’clock",
+          },
+          {
+            question: "If someone says 'Ich habe Durst', what do they mean?",
+            options: ["I am hungry", "I am thirsty", "I am cold", "I am tired"],
+            answer: "I am thirsty",
+          },
+        ],
+
+        "Quiz 9": [
+          {
+            question: "Which sentence is correctly written in German?",
+            options: [
+              "Ich gehe die Schule.",
+              "Ich gehe zur Schule.",
+              "Ich gehen Schule.",
+              "Ich Schule gehe.",
+            ],
+            answer: "Ich gehe zur Schule.",
+          },
+          {
+            question:
+              "What is the correct translation for 'I like reading books'?",
+            options: [
+              "Ich lese gerne Bücher.",
+              "Ich gerne lese Bücher.",
+              "Ich gern Bücher lese.",
+              "Ich lese Bücher gern.",
+            ],
+            answer: "Ich lese gerne Bücher.",
+          },
+          {
+            question:
+              "Which of these is a correctly written question in German?",
+            options: [
+              "Wie alt sind Sie?",
+              "Wie alt Sie sind?",
+              "Wie sind alt Sie?",
+              "Sie wie alt sind?",
+            ],
+            answer: "Wie alt sind Sie?",
+          },
+          {
+            question: "Which sentence has correct German word order?",
+            options: [
+              "Ich habe einen Hund.",
+              "Ich einen Hund habe.",
+              "Einen Hund habe ich.",
+              "Ich habe Hund einen.",
+            ],
+            answer: "Ich habe einen Hund.",
+          },
+          {
+            question: "Which sentence means 'I will travel to Germany'?",
+            options: [
+              "Ich werde nach Deutschland reisen.",
+              "Ich werde reisen Deutschland.",
+              "Ich reisen werde Deutschland.",
+              "Deutschland werde ich reisen.",
+            ],
+            answer: "Ich werde nach Deutschland reisen.",
+          },
+          {
+            question: "What is the correct translation for 'She is my sister'?",
+            options: [
+              "Sie ist meine Schwester.",
+              "Sie ist mein Schwester.",
+              "Sie ist ein Schwester.",
+              "Sie meine Schwester ist.",
+            ],
+            answer: "Sie ist meine Schwester.",
+          },
+          {
+            question: "Which sentence is written correctly?",
+            options: [
+              "Er hat eine Katze.",
+              "Er eine Katze hat.",
+              "Katze eine hat er.",
+              "Hat eine Katze er.",
+            ],
+            answer: "Er hat eine Katze.",
+          },
+          {
+            question: "Which word is spelled correctly in German?",
+            options: ["Fahrzeug", "Fahrzeuq", "Fahrzeugh", "Farhzeug"],
+            answer: "Fahrzeug",
+          },
+          {
+            question: "What is the correct translation of 'We live in Berlin'?",
+            options: [
+              "Wir wohnen in Berlin.",
+              "Wir wohnt in Berlin.",
+              "Wir wohnen Berlin.",
+              "Wohnen wir in Berlin.",
+            ],
+            answer: "Wir wohnen in Berlin.",
+          },
+          {
+            question: "Which sentence uses proper German punctuation?",
+            options: [
+              "Woher kommst du?",
+              "Woher kommst du.",
+              "Woher, kommst du",
+              "Woher kommst du!",
+            ],
+            answer: "Woher kommst du?",
+          },
+        ],
+
+        "Quiz 10": [
+          {
+            question: "What does 'Der Junge spielt im Park' mean?",
+            options: [
+              "The boy plays in the park",
+              "The boy goes to school",
+              "The boy eats dinner",
+              "The boy is sleeping",
+            ],
+            answer: "The boy plays in the park",
+          },
+          {
+            question:
+              "What is the meaning of 'Die Katze schläft auf dem Sofa'?",
+            options: [
+              "The cat sleeps on the sofa",
+              "The cat eats food",
+              "The cat runs outside",
+              "The cat plays with a ball",
+            ],
+            answer: "The cat sleeps on the sofa",
+          },
+          {
+            question: "What does 'Ich trinke gerne Kaffee' mean?",
+            options: [
+              "I like drinking coffee",
+              "I want to buy coffee",
+              "I do not like coffee",
+              "I never drink coffee",
+            ],
+            answer: "I like drinking coffee",
+          },
+          {
+            question: "How would you translate 'Das Wetter ist schön heute'?",
+            options: [
+              "The weather is nice today",
+              "It is raining today",
+              "The weather is cold",
+              "The weather is bad",
+            ],
+            answer: "The weather is nice today",
+          },
+          {
+            question: "What does 'Der Hund bellt laut' mean?",
+            options: [
+              "The dog barks loudly",
+              "The dog is eating",
+              "The dog is sleeping",
+              "The dog is playing",
+            ],
+            answer: "The dog barks loudly",
+          },
+          {
+            question: "What is the meaning of 'Die Blume ist rot'?",
+            options: [
+              "The flower is red",
+              "The tree is big",
+              "The grass is green",
+              "The sky is blue",
+            ],
+            answer: "The flower is red",
+          },
+          {
+            question: "What does 'Wir gehen ins Kino' mean?",
+            options: [
+              "We are going to the cinema",
+              "We are playing football",
+              "We are going home",
+              "We are studying",
+            ],
+            answer: "We are going to the cinema",
+          },
+          {
+            question: "What does 'Ich lese ein Buch' mean?",
+            options: [
+              "I am reading a book",
+              "I am buying a book",
+              "I am writing a book",
+              "I am looking for a book",
+            ],
+            answer: "I am reading a book",
+          },
+          {
+            question: "What is the meaning of 'Meine Schwester ist Lehrerin'?",
+            options: [
+              "My sister is a teacher",
+              "My sister is a student",
+              "My sister is a doctor",
+              "My sister is an artist",
+            ],
+            answer: "My sister is a teacher",
+          },
+          {
+            question: "What does 'Der Apfel liegt auf dem Tisch' mean?",
+            options: [
+              "The apple is on the table",
+              "The apple is in the bag",
+              "The apple is on the floor",
+              "The apple is in the fridge",
+            ],
+            answer: "The apple is on the table",
+          },
+        ],
+      };
+
+      let currentQuiz = "German Basics";
+      let currentQuestionIndex = 0;
+      let score = 0;
+      let userAnswers = [];
+
+      // Populate sidebar quizzes
+      const quizList = document.getElementById("quiz-list");
+      quizzes.forEach((quiz) => {
+        const li = document.createElement("li");
+        li.textContent = quiz;
+        li.addEventListener("click", () => loadQuiz(quiz));
+        quizList.appendChild(li);
+      });
+
+      // Load a selected quiz
+      function loadQuiz(quizName) {
+        currentQuiz = quizName;
+        currentQuestionIndex = 0;
+        score = 0;
+        userAnswers = [];
+        document.getElementById("quiz-title").textContent = quizName;
+        document.getElementById("score-card").classList.add("hidden");
+        document.getElementById("question-box").classList.remove("hidden");
+        document.getElementById("submit-btn").style.display = "none";
+        loadQuestion();
+      }
+
+      // Load a question
+      function loadQuestion() {
+        const quizData = questions[currentQuiz] || [];
+        if (currentQuestionIndex >= quizData.length) {
+          document.getElementById("question-box").classList.add("hidden");
+          showScoreCard();
+          return;
+        }
+
+        const questionObj = quizData[currentQuestionIndex];
+        document.getElementById("question-text").textContent =
+          questionObj.question;
+        const optionsList = document.getElementById("options-list");
+        optionsList.innerHTML = "";
+
+        questionObj.options.forEach((option) => {
+          const li = document.createElement("li");
+          li.textContent = option;
+          li.classList.add("option"); // Add option class
+          li.addEventListener("click", (event) => selectAnswer(option, event));
+          optionsList.appendChild(li);
+        });
+
+        document.getElementById("next-btn").style.display =
+          currentQuestionIndex < quizData.length - 1 ? "block" : "none";
+        document.getElementById("submit-btn").style.display =
+          currentQuestionIndex === quizData.length - 1 ? "block" : "none";
+      }
+
+      // Store selected answer
+      function selectAnswer(selectedOption) {
+        userAnswers[currentQuestionIndex] = selectedOption;
+
+        // Remove 'selected' class from all options
+        const options = document.querySelectorAll("#options-list li");
+        options.forEach((option) => option.classList.remove("selected"));
+
+        // Add 'selected' class to the clicked option
+        event.target.classList.add("selected");
+      }
+
+      // Load next question
+      function nextQuestion() {
+        currentQuestionIndex++;
+        loadQuestion();
+      }
+
+      // Show scorecard after submission
+      function showScoreCard() {
+        let correctAnswers = 0;
+        const quizData = questions[currentQuiz] || [];
+        const scoreCard = document.getElementById("score-card");
+
+        // First, count the correct answers
+        quizData.forEach((q, index) => {
+          if (userAnswers[index] === q.answer) {
+            correctAnswers++;
+          }
+        });
+        let passed = (correctAnswers / quizData.length >= 0.4) ? 1 : 0;
+        // Now, construct the result HTML with the correct score
+        let resultHTML = `<h3>Your Score: ${correctAnswers} / ${quizData.length}</h3>`;
+        resultHTML += "<h4>Correct Answers:</h4><ul>";
+
+        quizData.forEach((q, index) => {
+          if (userAnswers[index] === q.answer) {
+            resultHTML += `<li><strong>Q:</strong> ${q.question}<br><span class="correct">✅ Correct!</span></li>`;
+          } else {
+            resultHTML += `<li><strong>Q:</strong> ${q.question}<br><span class="incorrect">❌ Incorrect! The correct answer is <strong>${q.answer}</strong></span></li>`;
+          }
+        });
+
+        const quizResultData = {
+          userId: localStorage.getItem("userId"),
+          quizNumber: currentQuiz,
+          quizScore: correctAnswers,
+          passed: passed,
+        };
+
+        fetch("http://localhost:5000/api/quiz/saveScore", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(quizResultData),
+        })
+          .then((res) => res.json())
+          .then((data) => console.log("Quiz result saved successfully:", data))
+          .catch((err) => console.error("Error saving quiz result:", err));
+
+        resultHTML += "</ul>";
+        scoreCard.innerHTML = resultHTML;
+        scoreCard.classList.remove("hidden");
+
+        document.getElementById("submit-btn").style.display = "none";
+        document.getElementById("question-box").classList.add("hidden");
+      }
+
+      // Initial load
+      loadQuiz("Quiz 1");
+
+      // Event listeners
+      document
+        .getElementById("next-btn")
+        .addEventListener("click", nextQuestion);
+      document
+        .getElementById("submit-btn")
+        .addEventListener("click", showScoreCard);
+    </script>
+  </body>
+</html>

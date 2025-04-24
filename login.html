@@ -114,7 +114,7 @@
         document.getElementById("loginForm").addEventListener("submit", async function(event) {
             event.preventDefault();
     
-            const userID = document.getElementById("userID").value.trim();
+            const userId = document.getElementById("userID").value.trim();
             const password = document.getElementById("password").value;
     
             try {
@@ -123,20 +123,21 @@
                     headers: {
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ email: userID, password })
+                    body: JSON.stringify({ userId, password })
                 });
     
                 const result = await response.json();
     
                 if (response.ok) {
                     localStorage.setItem("token", result.token);
+                    localStorage.setItem("userId", result.email);
                     alert("Login successful! Redirecting...");
                     window.location.href = "home.html";
                 } else {
                     alert(result.message || "Login failed.");
                 }
             } catch (err) {
-                console.error("Login error:", err);
+                console.log("Login error:", err);
                 alert("An error occurred. Please try again.");
             }
         });
