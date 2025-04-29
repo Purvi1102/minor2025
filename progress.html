@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Progress Report</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<canvas id="progressChart" width="800" height="400"></canvas>
+
+<script>
+  // Fetch progress data from server
+  fetch('/api/progress')
+    .then(res => res.json())
+    .then(progressData => {
+      const quizNumbers = progressData.quizNumbers;
+      const actualScores = progressData.actualScores;
+      const predictedScores = progressData.predictedScores;
+
+      const ctx = document.getElementById('progressChart').getContext('2d');
+
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: quizNumbers,
+          datasets: [
+            {
+              label: 'Actual Scores',
+              data: actualScores,
+              borderColor: 'blue',
+              fill: false
+            },
+            {
+              label: 'Predicted Progress',
+              data: predictedScores,
+              borderColor: 'red',
+              borderDash: [5, 5],
+              fill: false
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Quiz Progress Over Time',
+              font: { size: 18 }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    })
+    .catch(err => console.error('Error loading progress data:', err));
+</script>
+
+</body>
+</html>

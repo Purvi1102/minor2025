@@ -106,7 +106,7 @@
                 <input type="password" id="password" name="password" required>
             </div>
             <button type="submit" class="btn-login">Login</button>
-            <p class="register-link">Don't have an account? <a href="signup.html">Sign Up</a></p>
+            <p class="register-link">Don't have an account? <a href="http://localhost:5000/signup">Sign Up</a></p>
         </form>
     </div>
 
@@ -130,9 +130,9 @@
     
                 if (response.ok) {
                     localStorage.setItem("token", result.token);
-                    localStorage.setItem("userId", result.email);
+                    localStorage.setItem("userId", result.userId);
                     alert("Login successful! Redirecting...");
-                    window.location.href = "home.html";
+                    window.location.href = "http://localhost:5000/home";
                 } else {
                     alert(result.message || "Login failed.");
                 }

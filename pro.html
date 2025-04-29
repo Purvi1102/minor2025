@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WordWiz Pronunciation</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f9;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh; /* Full viewport height */
+        margin: 0;
+      }
+
+      .container {
+        width: 50%;
+        margin: auto;
+        padding: 40px;
+        background: white;
+        box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+        text-align: center;
+      }
+
+      h1 {
+        margin-bottom: 20px;
+        font-size: 28px;
+      }
+
+      p {
+        font-size: 16px;
+        margin-bottom: 20px;
+        color: #555;
+      }
+
+      textarea {
+        width: 70%;
+        height: 100px;
+        padding: 10px;
+        font-size: 18px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        resize: none;
+      }
+
+      select,
+      button {
+        width: 62%;
+        padding: 12px;
+        font-size: 18px;
+        margin-top: 10px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+      }
+
+      button {
+        background-color: chocolate;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background-color: brown;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Pronunciation Tool</h1>
+      <textarea
+        id="text-input"
+        placeholder="Enter an English word..."
+      ></textarea>
+      <select id="language-select">
+        <option value="en">English</option>
+        <option value="de">German</option>
+      </select>
+      <button id="translate-button">🔄 Translate</button>
+      <button id="speak-button">🔊 Speak</button>
+      <p id="translated-text"></p>
+    </div>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const textInput = document.querySelector("#text-input");
+        const languageSelect = document.querySelector("#language-select");
+        const translateButton = document.querySelector("#translate-button");
+        const speakButton = document.querySelector("#speak-button");
+        const translatedText = document.querySelector("#translated-text");
+
+        let lastTranslatedWord = ""; // Store translated word for pronunciation
+
+        // Function to translate text
+        async function translateText() {
+          let text = textInput.value.trim();
+          if (!text) {
+            alert("Please enter a word.");
+            return;
+          }
+
+          let targetLang = languageSelect.value === "en" ? "de" : "en"; // Toggle between English & German
+          let url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${targetLang}&dt=t&q=${encodeURIComponent(
+            text
+          )}`;
+
+          try {
+            let response = await fetch(url);
+            let data = await response.json();
+            let translatedWord = data[0][0][0];
+
+            lastTranslatedWord = translatedWord;
+            translatedText.textContent = `Translation: ${translatedWord}`;
+          } catch (error) {
+            console.error("Translation error:", error);
+            translatedText.textContent = "Translation failed.";
+          }
+        }
+
+        // Function to pronounce the text correctly
+        function pronounceText() {
+          let text = textInput.value.trim();
+          let langCode = languageSelect.value === "en" ? "en-US" : "de-DE";
+
+          if (lastTranslatedWord && languageSelect.value !== "en") {
+            text = lastTranslatedWord; // Speak the translation only for German
+          }
+
+          if (!text) {
+            alert("Please enter a word or translate first.");
+            return;
+          }
+
+          let utterance = new SpeechSynthesisUtterance(text);
+          utterance.lang = langCode;
+          window.speechSynthesis.speak(utterance);
+        }
+
+        translateButton.addEventListener("click", translateText);
+        speakButton.addEventListener("click", pronounceText);
+      });
+    </script>
+  </body>
+</html>

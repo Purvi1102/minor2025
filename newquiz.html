@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>German Quiz Game</title>
+    <title>Quiz Levels Game</title>
     <style>
       * {
         margin: 0;
@@ -11,38 +11,62 @@
         box-sizing: border-box;
         font-family: Arial, sans-serif;
       }
-
       .container {
         display: flex;
         height: 100vh;
       }
-
       .sidebar {
         width: 250px;
         background: #1e293b;
         color: white;
         padding: 20px;
+        overflow-y: auto;
       }
-
       .sidebar h2 {
         font-size: 20px;
-        margin-bottom: 20px;
+        margin-bottom: 10px;
       }
-
+      .sidebar #level-indicator {
+        margin-bottom: 15px;
+        font-weight: bold;
+      }
+      .sidebar #message-box {
+        margin-bottom: 15px;
+        background-color: #fecaca;
+        color: #b91c1c;
+        padding: 10px;
+        border-radius: 5px;
+        display: none;
+        text-align: center;
+      }
       .sidebar ul {
         list-style: none;
       }
-
       .sidebar ul li {
         padding: 10px;
         cursor: pointer;
         transition: background 0.3s;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
       }
-
       .sidebar ul li:hover {
         background: #334155;
       }
-
+      .sidebar ul li.locked {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      #reset-btn {
+        margin-top: 20px;
+        padding: 10px;
+        width: 100%;
+        background: #ef4444;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
       .quiz-container {
         flex: 1;
         display: flex;
@@ -50,7 +74,6 @@
         align-items: center;
         justify-content: center;
       }
-
       #question-box {
         background: #f1f5f9;
         padding: 20px;
@@ -58,36 +81,21 @@
         width: 400px;
         text-align: center;
       }
-
       .hidden {
         display: none;
       }
-
       #score-card {
         background: #e5e7eb;
         padding: 20px;
         border-radius: 10px;
-        text-align: left;
         width: 400px;
         margin-top: 20px;
         box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
       }
-
-      .correct {
-        color: green;
-        font-weight: bold;
-      }
-
-      .incorrect {
-        color: red;
-        font-weight: bold;
-      }
-
       #options-list {
         list-style: none;
         padding: 0;
       }
-
       #options-list li {
         background: #e2e8f0;
         padding: 10px;
@@ -98,15 +106,13 @@
         text-align: center;
       }
       #options-list li.selected {
-        background: #3b82f6 !important; /* Blue highlight */
+        background: #3b82f6;
         color: white;
         font-weight: bold;
       }
-
       #options-list li:hover {
         background: #94a3b8;
       }
-
       #next-btn,
       #submit-btn {
         margin-top: 10px;
@@ -116,43 +122,42 @@
         border: none;
         cursor: pointer;
         border-radius: 5px;
-        display: block;
         width: 100%;
       }
-
       #next-btn:hover,
       #submit-btn:hover {
         background: #2563eb;
       }
-      .selected {
-        background-color: #4caf50; /* Green for selected answer */
-        color: white;
+
+      /* Add to existing CSS */
+      @keyframes slideFade {
+        0% {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
 
-      .option {
-        cursor: pointer;
-        padding: 10px;
-        border: 1px solid #ccc;
-        margin: 5px 0;
-        transition: background-color 0.3s;
-      }
-
-      .option:hover {
-        background-color: #ddd;
+      #message-box.animate {
+        animation: slideFade 0.5s ease forwards;
       }
     </style>
   </head>
   <body>
     <div class="container">
       <aside class="sidebar">
-        <h2>WordWiz - Quizzes</h2>
-        <ul id="quiz-list">
-          <!-- Quizzes will be dynamically added here -->
-        </ul>
+        <h2>Quiz Levels</h2>
+        <div id="level-indicator">📚 Current Level: 1</div>
+        <div id="message-box"></div>
+        <ul id="quiz-list"></ul>
+        <button id="reset-btn">Reset Progress</button>
       </aside>
 
       <main class="quiz-container">
-        <h2 id="quiz-title">German Basics</h2>
+        <h2 id="quiz-title">Quiz</h2>
         <div id="question-box">
           <p id="question-text">Loading question...</p>
           <ul id="options-list"></ul>
@@ -164,6 +169,7 @@
     </div>
 
     <script>
+      // --- DATA ---
       const quizzes = [
         "Quiz 1",
         "Quiz 2",
@@ -176,6 +182,12 @@
         "Quiz 9",
         "Quiz 10",
       ];
+
+      const levels = {
+        1: ["Quiz 1", "Quiz 2", "Quiz 3"],
+        2: ["Quiz 4", "Quiz 5", "Quiz 6"],
+        3: ["Quiz 7", "Quiz 8", "Quiz 9", "Quiz 10"],
+      };
 
       const questions = {
         "Quiz 1": [
@@ -937,26 +949,71 @@
           },
         ],
       };
-
-      let currentQuiz = "German Basics";
+      // --- VARIABLES ---
+      let currentQuiz = "Quiz 1";
       let currentQuestionIndex = 0;
-      let score = 0;
       let userAnswers = [];
+      let passedQuizzes =
+        JSON.parse(localStorage.getItem("passedQuizzes")) || {};
+      let currentLevel = parseInt(localStorage.getItem("currentLevel")) || 1;
 
-      // Populate sidebar quizzes
       const quizList = document.getElementById("quiz-list");
-      quizzes.forEach((quiz) => {
-        const li = document.createElement("li");
-        li.textContent = quiz;
-        li.addEventListener("click", () => loadQuiz(quiz));
-        quizList.appendChild(li);
-      });
 
-      // Load a selected quiz
+      function updateSidebar() {
+        quizList.innerHTML = "";
+
+        for (const [levelNum, levelQuizzes] of Object.entries(levels)) {
+          // Create Level heading
+          const levelTitle = document.createElement("li");
+          levelTitle.textContent = `📚 Level ${levelNum}`;
+          levelTitle.style.fontWeight = "bold";
+          levelTitle.style.marginTop = "15px";
+          quizList.appendChild(levelTitle);
+
+          // Add quizzes under this level
+          levelQuizzes.forEach((quiz) => {
+            const li = document.createElement("li");
+            li.textContent = quiz;
+            const quizLevel = findQuizLevel(quiz);
+
+            if (quizLevel > currentLevel) {
+              li.classList.add("locked");
+              li.innerHTML = `${quiz} 🔒`;
+            }
+            li.addEventListener("click", () =>
+              attemptLoadQuiz(quiz, quizLevel)
+            );
+            quizList.appendChild(li);
+          });
+        }
+
+        document.getElementById(
+          "level-indicator"
+        ).textContent = `📚 Current Level: ${currentLevel}`;
+      }
+
+      function findQuizLevel(quizName) {
+        for (const [level, quizzes] of Object.entries(levels)) {
+          if (quizzes.includes(quizName)) {
+            return parseInt(level);
+          }
+        }
+        return 1;
+      }
+
+      function attemptLoadQuiz(quizName, quizLevel) {
+        if (quizLevel > currentLevel) {
+          showMessage(
+            "🔒 You must pass previous quizzes to unlock this level!"
+          );
+          return;
+        }
+        loadQuiz(quizName);
+      }
+
       function loadQuiz(quizName) {
         currentQuiz = quizName;
         currentQuestionIndex = 0;
-        score = 0;
         userAnswers = [];
         document.getElementById("quiz-title").textContent = quizName;
         document.getElementById("score-card").classList.add("hidden");
@@ -964,16 +1021,16 @@
         document.getElementById("submit-btn").style.display = "none";
         loadQuestion();
       }
+      // --- Updated Sidebar Generation ---
+      // Function to create the list of levels with their quizzes
 
-      // Load a question
       function loadQuestion() {
-        const quizData = questions[currentQuiz] || [];
+        const quizData = questions[currentQuiz];
         if (currentQuestionIndex >= quizData.length) {
           document.getElementById("question-box").classList.add("hidden");
           showScoreCard();
           return;
         }
-
         const questionObj = quizData[currentQuestionIndex];
         document.getElementById("question-text").textContent =
           questionObj.question;
@@ -983,7 +1040,6 @@
         questionObj.options.forEach((option) => {
           const li = document.createElement("li");
           li.textContent = option;
-          li.classList.add("option"); // Add option class
           li.addEventListener("click", (event) => selectAnswer(option, event));
           optionsList.appendChild(li);
         });
@@ -994,48 +1050,45 @@
           currentQuestionIndex === quizData.length - 1 ? "block" : "none";
       }
 
-      // Store selected answer
-      function selectAnswer(selectedOption) {
+      function selectAnswer(selectedOption, event) {
         userAnswers[currentQuestionIndex] = selectedOption;
-
-        // Remove 'selected' class from all options
         const options = document.querySelectorAll("#options-list li");
-        options.forEach((option) => option.classList.remove("selected"));
-
-        // Add 'selected' class to the clicked option
+        options.forEach((li) => li.classList.remove("selected"));
         event.target.classList.add("selected");
       }
 
-      // Load next question
       function nextQuestion() {
         currentQuestionIndex++;
         loadQuestion();
       }
 
-      // Show scorecard after submission
       function showScoreCard() {
+        const quizData = questions[currentQuiz];
         let correctAnswers = 0;
-        const quizData = questions[currentQuiz] || [];
         const scoreCard = document.getElementById("score-card");
 
-        // First, count the correct answers
         quizData.forEach((q, index) => {
-          if (userAnswers[index] === q.answer) {
-            correctAnswers++;
-          }
+          if (userAnswers[index] === q.answer) correctAnswers++;
         });
-        let passed = (correctAnswers / quizData.length >= 0.4) ? 1 : 0;
-        // Now, construct the result HTML with the correct score
-        let resultHTML = `<h3>Your Score: ${correctAnswers} / ${quizData.length}</h3>`;
-        resultHTML += "<h4>Correct Answers:</h4><ul>";
+
+        const percentage = (correctAnswers / quizData.length) * 100;
+        const passed = (percentage >= 60) ? 1: 0;
+        let resultHTML = `<h3>Your Score: ${correctAnswers}/${
+          quizData.length
+        }</h3><h4>(${percentage.toFixed(1)}%)</h4>`;
+        resultHTML += "<p>You need 60% to pass!</p><hr>";
+
+        resultHTML += "<h4>Quiz Review:</h4><ul>";
 
         quizData.forEach((q, index) => {
           if (userAnswers[index] === q.answer) {
-            resultHTML += `<li><strong>Q:</strong> ${q.question}<br><span class="correct">✅ Correct!</span></li>`;
+            resultHTML += `<li><strong>Q:</strong> ${q.question}<br><span style="color:green;">✅ Correct!</span></li>`;
           } else {
-            resultHTML += `<li><strong>Q:</strong> ${q.question}<br><span class="incorrect">❌ Incorrect! The correct answer is <strong>${q.answer}</strong></span></li>`;
+            resultHTML += `<li><strong>Q:</strong> ${q.question}<br><span style="color:red;">❌ Incorrect! Correct Answer: <strong>${q.answer}</strong></span></li>`;
           }
         });
+
+        resultHTML += "</ul>";
 
         const quizResultData = {
           userId: localStorage.getItem("userId"),
@@ -1055,24 +1108,61 @@
           .then((data) => console.log("Quiz result saved successfully:", data))
           .catch((err) => console.error("Error saving quiz result:", err));
 
-        resultHTML += "</ul>";
+        if (percentage >= 60) {
+          passedQuizzes[currentQuiz] = true;
+          localStorage.setItem("passedQuizzes", JSON.stringify(passedQuizzes));
+          checkLevelProgress();
+          showMessage("✅ Passed! Good job!");
+        } else {
+          showMessage("❌ You need at least 60% to pass. Try again!");
+        }
+
         scoreCard.innerHTML = resultHTML;
         scoreCard.classList.remove("hidden");
-
-        document.getElementById("submit-btn").style.display = "none";
-        document.getElementById("question-box").classList.add("hidden");
       }
 
-      // Initial load
-      loadQuiz("Quiz 1");
+      function checkLevelProgress() {
+        const levelQuizzes = levels[currentLevel];
+        const allPassed = levelQuizzes.every((q) => passedQuizzes[q]);
+        if (allPassed && currentLevel < 3) {
+          currentLevel++;
+          localStorage.setItem("currentLevel", currentLevel);
+          showMessage(
+            `🎉 Congratulations! You've unlocked Level ${currentLevel}!`
+          );
+          updateSidebar();
+        }
+      }
 
-      // Event listeners
+      function showMessage(text) {
+        const msgBox = document.getElementById("message-box");
+        msgBox.textContent = text;
+        msgBox.style.display = "block";
+        msgBox.classList.add("animate"); // Add animation class
+
+        setTimeout(() => {
+          msgBox.style.display = "none";
+          msgBox.classList.remove("animate"); // Remove animation class for next time
+        }, 3000);
+      }
+
       document
         .getElementById("next-btn")
         .addEventListener("click", nextQuestion);
       document
         .getElementById("submit-btn")
         .addEventListener("click", showScoreCard);
+
+      document.getElementById("reset-btn").addEventListener("click", () => {
+        if (confirm("Are you sure you want to reset all progress?")) {
+          localStorage.removeItem("passedQuizzes");
+          localStorage.removeItem("currentLevel");
+          location.reload();
+        }
+      });
+
+      updateSidebar();
+      loadQuiz("Quiz 1");
     </script>
   </body>
 </html>

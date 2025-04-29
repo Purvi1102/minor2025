@@ -107,7 +107,7 @@
                 <input type="password" id="password" name="password" required>
             </div>
             <button type="submit" class="btn-signup">Sign Up</button>
-            <p class="login-link">Already have an account? <a href="login.html">Login</a></p>
+            <p class="login-link">Already have an account? <a href="http://localhost:5003/">Login</a></p>
         </form>
     </div>
 
@@ -131,7 +131,7 @@
     
                 if (response.ok) {
                     alert("Account created successfully! Redirecting to login...");
-                    window.location.href = "login.html";
+                    window.location.href = "http://localhost:5003/";
                 } else {
                     alert(result.message || "Signup failed.");
                 }
